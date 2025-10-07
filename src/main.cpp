@@ -1,4 +1,5 @@
 #include "logger.hpp"
+#include "main.hpp"
 
 int main() {
   try {
