@@ -23,7 +23,7 @@ constexpr T* reverse(T* head) noexcept {
 // Multithreading
 // =================================================================================================
 // Task: Implement `logger` as a multiple producers, singele consumer queue as efficient as you can.
-
+#if 1
 /**
  * @brief Logger implemented via a bounded MPSC queue
  */
@@ -49,5 +49,29 @@ public:
 private:
   ngg::mpsc::ring<std::string> queue_;
 };
+#else
+/**
+ * @brief Logger implemented via an unbounded MPSC queue
+ */
+class logger {
+public:
+  logger() : queue_() {}
+
+  // Queues the message. Called from multiple threads.
+  void post(std::string text) {
+    queue_.push(std::move(text));
+  }
+
+  // Processes messages. Called from a single thread.
+  void run(std::stop_token stop) {
+    while (!stop.stop_requested())
+      while (auto v = queue_.pull())
+        std::fputs(v.value().data(), stdout);
+  }
+
+private:
+  ngg::mpsc::stable_queue<std::string> queue_;
+};
+#endif
 
 #define logger logger
